@@ -1,0 +1,7 @@
+# Opsional, jika cleanup dijalankan sebagai Cloudflare Worker
+name = "docuflow-cleanup"
+main = "handler.ts"
+compatibility_date = "2024-09-01"
+
+[triggers]
+crons = ["0 * * * *"]   # setiap jam

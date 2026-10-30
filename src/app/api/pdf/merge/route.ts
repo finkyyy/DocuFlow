@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server";
+import { PDFDocument } from "pdf-lib";
+import { validatePdf } from "@/lib/validate";
+import { logAction } from "@/lib/db";
+import { getViewer } from "@/lib/auth";
+
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  const viewer = await getViewer(req);
+  try {
+    const form = await req.formData();
+    const files = form.getAll("files").filter((f): f is File => f instanceof File);
+    if (files.length < 2)
+      return NextResponse.json({ error: "Pilih minimal 2 file PDF." }, { status: 400 });
+
+    for (const f of files) {
+      const v = validatePdf(f);
+      if (!v.ok) return NextResponse.json({ error: v.error }, { status: v.status });
+    }
+
+    const merged = await PDFDocument.create();
+    for (const f of files) {
+      const src = await PDFDocument.load(await f.arrayBuffer());
+      const pages = await merged.copyPages(src, src.getPageIndices());
+      pages.forEach((p) => merged.addPage(p));
+    }
+    const bytes = await merged.save();
+
+    await logAction("MERGE", "SUCCESS", { userId: viewer.userId });
+    return new NextResponse(Buffer.from(bytes), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="merged.pdf"',
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    await logAction("MERGE", "FAILED", { userId: viewer.userId });
+    return NextResponse.json({ error: "Gagal menggabungkan PDF." }, { status: 500 });
+  }
+}
