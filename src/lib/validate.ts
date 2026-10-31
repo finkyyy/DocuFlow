@@ -1,4 +1,4 @@
-export const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB ?? 20) * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB ?? 4) * 1024 * 1024;
 
 export type ValidationResult = { ok: true } | { ok: false; error: string; status: number };
 

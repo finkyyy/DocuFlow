@@ -5,6 +5,7 @@ import { logAction } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 // CATATAN: pdf-lib tidak mengompres gambar. Di sini kita hanya menyimpan ulang
 // dengan object streams dan membuang metadata, yang efektif untuk PDF yang

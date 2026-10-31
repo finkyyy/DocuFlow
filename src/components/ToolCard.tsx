@@ -25,6 +25,26 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const MAX_UPLOAD_MB = 4;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
+async function getErrorMessage(res: Response) {
+  let message: string | null = null;
+  try {
+    const data: unknown = await res.json();
+    if (data && typeof data === "object" && "error" in data) {
+      const error = (data as { error?: unknown }).error;
+      if (typeof error === "string") message = error;
+    }
+  } catch {
+    // Vercel dapat mengembalikan 413 berupa HTML, bukan JSON.
+  }
+  if (message) return message;
+  if (res.status === 413)
+    return `Ukuran file terlalu besar. Maksimal ${MAX_UPLOAD_MB} MB (total untuk Gabungkan PDF).`;
+  return "Terjadi kesalahan. Silakan coba lagi.";
+}
+
 export default function ToolCard({ title, endpoint, multiple, fieldName, button, mode }: Props) {
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [busy, setBusy] = useState(false);
@@ -64,7 +84,7 @@ export default function ToolCard({ title, endpoint, multiple, fieldName, button,
       const body = new FormData();
       files.forEach(({ file }) => body.append(fieldName, file));
       const res = await fetch(endpoint, { method: "POST", body });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Terjadi kesalahan.");
+      if (!res.ok) throw new Error(await getErrorMessage(res));
 
       if (mode === "link") {
         setLink((await res.json()).url);
@@ -83,7 +103,15 @@ export default function ToolCard({ title, endpoint, multiple, fieldName, button,
     }
   }
 
-  const canRun = multiple ? files.length >= 2 : files.length > 0;
+  const totalBytes = files.reduce((sum, { file }) => sum + file.size, 0);
+  const selectedBytes = multiple ? totalBytes : (files[0]?.file.size ?? 0);
+  const sizeExceeded = selectedBytes > MAX_UPLOAD_BYTES;
+  const canRun = (multiple ? files.length >= 2 : files.length > 0) && !sizeExceeded;
+  const sizeWarning = sizeExceeded
+    ? multiple
+      ? `Total ukuran file ${formatSize(selectedBytes)} melebihi batas ${MAX_UPLOAD_MB} MB. Hapus beberapa file atau kompres terlebih dahulu.`
+      : `Ukuran file ${formatSize(selectedBytes)} melebihi batas ${MAX_UPLOAD_MB} MB. Pilih file yang lebih kecil atau kompres terlebih dahulu.`
+    : null;
   const hint =
     files.length === 0
       ? "Belum ada file dipilih. Pilih minimal 2 file PDF."
@@ -140,6 +168,10 @@ export default function ToolCard({ title, endpoint, multiple, fieldName, button,
             </li>
           ))}
         </ul>
+      )}
+
+      {sizeWarning && (
+        <p className="hint hint-warning" role="alert">{sizeWarning}</p>
       )}
 
       {multiple && (

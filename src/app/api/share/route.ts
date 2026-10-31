@@ -6,6 +6,7 @@ import { validatePdf } from "@/lib/validate";
 import { getViewer } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const viewer = await getViewer(req);
