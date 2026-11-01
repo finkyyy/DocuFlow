@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata = {
   title: "DocuFlow",
-  description: "Gabung, kompres, dan bagikan PDF.",
+  description: "Gabung, kompres, konversi, dan bagikan PDF.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
