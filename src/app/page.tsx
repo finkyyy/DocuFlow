@@ -1,15 +1,34 @@
-import ConvertCard from "@/components/ConvertCard";
-import ToolCard from "@/components/ToolCard";
+import ToolTabs from "@/components/ToolTabs";
 
 export default function Home() {
   return (
-    <main>
-      <h1>DocuFlow</h1>
-      <p className="lead">Gabung, kompres, konversi, dan bagikan PDF. Maksimal 4 MB per file (total 4 MB untuk Gabungkan PDF).</p>
-      <ToolCard title="Gabungkan PDF" endpoint="/api/pdf/merge" fieldName="files" multiple button="Gabungkan" mode="download" />
-      <ToolCard title="Kompres PDF" endpoint="/api/pdf/compress" fieldName="file" button="Kompres" mode="download" />
-      <ConvertCard />
-      <ToolCard title="Bagikan lewat link" endpoint="/api/share" fieldName="file" button="Buat link" mode="link" />
-    </main>
+    <div className="page">
+      <header className="masthead">
+        <div className="masthead-inner">
+          <a className="brand" href="/">
+            DocuFlow
+          </a>
+          <p className="masthead-note">Meja kerja dokumen</p>
+        </div>
+      </header>
+
+      <main className="shell">
+        <ToolTabs />
+        <div className="page-notes">
+          <p className="limits">Maksimal 4 MB per file (total 4 MB untuk Gabung)</p>
+          <p className="trust-note">
+            Gabung dan kompres diproses langsung dan tidak disimpan. Link berbagi dihapus otomatis
+            setelah 24 jam.
+          </p>
+        </div>
+      </main>
+
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <p>Privasi: DocuFlow hanya menyimpan tautan berbagi, dan menghapusnya saat kedaluwarsa.</p>
+          <p className="footer-meta">DocuFlow · alat dokumen</p>
+        </div>
+      </footer>
+    </div>
   );
 }
